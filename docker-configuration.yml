@@ -1,0 +1,52 @@
+---
+
+- name: Docker
+  hosts: others
+  become: true
+  user: user01
+
+- name: Docker Repository
+  tasks:
+    yum_repository:
+      Docker_Folder: "Docker-Repo"
+      description: "Working Folder for Docker"
+
+- name: Packages
+  tasks:
+    yum:
+      name: "{{packages}}"
+      vars:
+        packages:
+          - wget
+          - python-pip
+          - yum-utils
+          - lvm2
+          - device-mapper-persistent-data
+          - amazon-linux-extras
+      state: latest
+      update_cache: yes
+
+- name: python-pip installation
+  shell: "amazon-linux-extras enable python3.8 ansible2"
+
+- name: Docker installation
+  shell: |
+        sudo amazon-linux-extras install docker -y
+        sudo service docker start
+        sudo systemctl enable docker
+
+- name: Starting docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Extensions verification
+  yum:
+    name: "{{packages}}"
+    executable: /usr/local/bin/pip3.8
+  vars:
+    packages:
+      - python
+      - ansible
+      - docker-compose
